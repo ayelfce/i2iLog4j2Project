@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+        <RollingFile name="RollingFile" fileName="logs/timer.log"
+                     filePattern="logs/timer%d{yyyy-MM-dd}-%i.log">
+            <PatternLayout>
+                <Pattern>%d [%t] %-5level: %msg%n%throwable</Pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="1MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="7"/>
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+        <Root level="error">
+            <AppenderRef ref="RollingFile"/>
+        </Root>
+        <Logger name="com.example.myTimerLoggings" level="debug" additivity="false">
+            <AppenderRef ref="RollingFile"/>
+        </Logger>
+    </Loggers>
+    <Scripts>
+        <Script name="deleteOldLogs" language="javascript">
+            <ScriptText>
+                <![CDATA[
+                    var FileSystems = Java.type('java.nio.file.FileSystems');
+                    var Files = Java.type('java.nio.file.Files');
+                    var Paths = Java.type('java.nio.file.Paths');
+                    var Duration = Java.type('java.time.Duration');
+                    var now = java.time.Instant.now();
+                    var dir = Paths.get("logs");
+                    var stream = Files.find(dir, 1, function(path, attrs) {
+                        return (java.time.Duration.between(attrs.lastModifiedTime().toInstant(), now).compareTo(Duration.ofDays(1)) > 0);
+                    });
+                    stream.forEach(function(path) {
+                        Files.delete(path);
+                    });
+                ]]>
+            </ScriptText>
+        </Script>
+    </Scripts>
+</Configuration>
